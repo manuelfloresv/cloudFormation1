@@ -20,9 +20,43 @@ Resources:
         Value:  !Join ['', [!Ref "AWS::StackName", "-IGW" ]]
     DependsOn: VPC
   AttachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
-    # Notice how you can't attach an IGW to a VPC unless both are created:
+    Type: AWS::EC2::VPCGatewayAttachment    
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
-  
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs ]    
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Publica-1
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs ]    
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Publica-2
+  PublicSubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [ 2, !GetAZs ]    
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Privada-1
+  PublicSubnetD:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: !Select [ 3, !GetAZs ]    
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Privada-2 
