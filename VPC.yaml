@@ -12,6 +12,7 @@ Resources:
         Value:  !Join ['', [!Ref "AWS::StackName", "-VPC" ]]
       - Key: Environment
         Value:  Test
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -24,6 +25,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
+
   PublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -42,7 +44,7 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-Publica-2
-  PublicSubnetC:
+  PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -51,7 +53,7 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-Privada-1
-  PublicSubnetD:
+  PrivateSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -60,6 +62,7 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-Privada-2   
+  
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -87,3 +90,24 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
+  
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTable
