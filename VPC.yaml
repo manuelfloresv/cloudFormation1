@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: VPC Creation
+
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -111,3 +112,45 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnetB
       RouteTableId: !Ref PrivateRouteTable
+  
+  PublicSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable WEB and SSH
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Publica
+
+Outputs:
+  VPCId:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::StackName}-VPCID
+  oPublicSubnetA:
+    Description: Subnet PublicSubnetA
+    Value: !Ref PublicSubnetA
+    Export: 
+      Name: !Sub ${AWS::StackName}-SubnetID
+  oPublicSecurityGroup:
+    Description: Subnet PublicSecurityGroup
+    Value: 
+      Fn::GetAtt:
+      - PublicSecurityGroup
+      - GroupId
+    Export: 
+      Name: !Sub ${AWS::StackName}-PublicSecurityGroupID
