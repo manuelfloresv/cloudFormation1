@@ -1,0 +1,62 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 Creation
+
+Parameters:
+  NetworkStackName:
+    Description: "Nombre del Stack de recursos de Red."
+    Type: String
+  KeyName:
+    Description: Nombre de una llave existente para acceder a la instancia
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings:
+  RegionMap: # ami ubuntu 18.04 (64-bit x86)
+    us-east-1:
+      AMI: ami-085925f297f89fce1
+    us-east-2:
+      AMI: ami-07c1207a9d40bc3bd
+    us-west-1:
+      AMI:  ami-0f56279347d2fa43e
+    us-west-2:
+      AMI: ami-003634241a8fcdec0    
+
+Resources:
+  Ec2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro      
+      ImageId:
+        Fn::FindInMap:
+        - RegionMap
+        - !Ref AWS::Region
+        - AMI
+      AvailabilityZone: !Select [ 0, !GetAZs ]   
+      NetworkInterfaces:
+      - GroupSet:
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSecurityGroupID
+        AssociatePublicIpAddress: 'true'
+        DeviceIndex: '0'
+        SubnetId:
+          Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-SubnetID 
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-publico
+      KeyName: !Ref KeyName
+      UserData:
+        Fn::Base64:
+          !Sub |          
+            #!/bin/bash
+            apt update 
+            apt install -y libapache2-mod-php php php-gd php-xml php-curl php-mbstring php-xmlrpc php-mysql stress nfs-common
+            echo "<html><head><title></title></head><body><h1>Servidor </h1><pre><script type='text/javascript'>document.writeln (' $(ip add|grep -o -P "ether ([0-9a-f]{2}[:-]){5}([0-9a-f]{2})")' );</script><x/pre></body></html>" > /var/www/html/index.html
+            chown www-data.www-data -R /var/www/html
+            systemctl restart apache2
+Outputs:
+  Website:
+    Description: El DNS publico de la instancia EC2 
+    Value: !Sub 'http://${Ec2Instance.PublicDnsName}'
+          
+ 
