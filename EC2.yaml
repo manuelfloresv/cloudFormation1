@@ -40,7 +40,7 @@ Resources:
         DeviceIndex: '0'
         SubnetId:
           Fn::ImportValue:
-            Fn::Sub: ${NetworkStackName}-SubnetID 
+            Fn::Sub: ${NetworkStackName}-PublicSubnetAID 
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-publico
