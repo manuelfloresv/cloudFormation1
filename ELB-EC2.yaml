@@ -64,6 +64,7 @@ Resources:
   LaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
+      LaunchConfigurationName: !Sub ${AWS::StackName}-LaunchConfig
       KeyName: !Ref KeyName
       # This line finds appropriate image ID based on the arch, region and instance type using FindInMap function
       ImageId: 
@@ -98,7 +99,19 @@ Resources:
       MaxSize: 4
       TargetGroupARNs:
         - !Ref DefaultTargetGroup
-
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: true
+        Value: !Sub ${AWS::StackName}-asg
+  CPUPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 60
 Outputs:
   oAplicationLoadBalancer:
     Description: El balanceador es  
