@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ELB Creation
+
+Parameters:
+  NetworkStackName:
+    Description: "Nombre del Stack de recursos de Red."
+    Type: String
+  KeyName:
+    Description: Nombre de una llave existente para acceder a la instancia
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings:
+  RegionMap: # ami ubuntu 18.04 (64-bit x86)
+    us-east-1:
+      AMI: ami-085925f297f89fce1
+    us-east-2:
+      AMI: ami-07c1207a9d40bc3bd
+    us-west-1:
+      AMI:  ami-0f56279347d2fa43e
+    us-west-2:
+      AMI: ami-003634241a8fcdec0    
+      
+Resources:
+  AplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer    
+    Properties:                 
+      Name: !Sub ${AWS::StackName}-ALB
+      Type: application
+      Subnets: 
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSubnetAID
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSubnetBID
+      SecurityGroups:
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSecurityGroupID
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-alb
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${AWS::StackName}-default
+      VpcId: 
+        Fn::ImportValue:
+          Fn::Sub: ${NetworkStackName}-VPCID
+      Port: 80
+      Protocol: HTTP
+      HealthCheckPath: /index.html
+      HealthCheckIntervalSeconds: 10
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref AplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+  LaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      KeyName: !Ref KeyName
+      # This line finds appropriate image ID based on the arch, region and instance type using FindInMap function
+      ImageId: 
+        Fn::FindInMap:
+        - RegionMap
+        - !Ref AWS::Region
+        - AMI
+      SecurityGroups: 
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSecurityGroupID
+      InstanceType: t2.micro      
+      AssociatePublicIpAddress: true
+      UserData:
+        Fn::Base64:
+          !Sub |          
+            #!/bin/bash
+            apt update 
+            apt install -y libapache2-mod-php php php-gd php-xml php-curl php-mbstring php-xmlrpc php-mysql stress nfs-common
+            echo "<html><head><title></title></head><body><h1>Servidor </h1><pre><script type='text/javascript'>document.writeln (' $(ip add|grep -o -P "ether ([0-9a-f]{2}[:-]){5}([0-9a-f]{2})")' );</script><x/pre></body></html>" > /var/www/html/index.html
+            chown www-data.www-data -R /var/www/html
+            systemctl restart apache2
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSubnetAID
+        - Fn::ImportValue:
+            Fn::Sub: ${NetworkStackName}-PublicSubnetBID
+      LaunchConfigurationName: !Ref LaunchConfig
+      MinSize: 2
+      MaxSize: 4
+      TargetGroupARNs:
+        - !Ref DefaultTargetGroup
+
+Outputs:
+  oAplicationLoadBalancer:
+    Description: El balanceador es  
+    Value: !Ref AplicationLoadBalancer
+    Export: 
+      Name: !Sub ${AWS::StackName}-ALB          
+  oLoadBalancerUrl:
+    Description: The URL of the ALB
+    Value: !GetAtt AplicationLoadBalancer.DNSName
+    Export: 
+      Name: !Sub ${AWS::StackName}-ALB-url
+
+  Listener:
+    Description: A reference to a port 80 listener
+    Value: !Ref LoadBalancerListener
+    Export: 
+      Name: !Sub ${AWS::StackName}-ALB-listener
