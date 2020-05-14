@@ -145,7 +145,22 @@ Outputs:
     Description: Subnet PublicSubnetA
     Value: !Ref PublicSubnetA
     Export: 
-      Name: !Sub ${AWS::StackName}-SubnetID
+      Name: !Sub ${AWS::StackName}-PublicSubnetAID
+  oPublicSubnetB:
+    Description: Subnet PublicSubnetB
+    Value: !Ref PublicSubnetB
+    Export: 
+      Name: !Sub ${AWS::StackName}-PublicSubnetBID
+  oPrivateSubnetA:
+    Description: Subnet PrivateSubnetA
+    Value: !Ref PrivateSubnetA
+    Export: 
+      Name: !Sub ${AWS::StackName}-PrivateSubnetAID
+  oPrivateSubnetB:
+    Description: Subnet PrivateSubnetB
+    Value: !Ref PrivateSubnetB
+    Export: 
+      Name: !Sub ${AWS::StackName}-PrivateSubnetBID
   oPublicSecurityGroup:
     Description: Subnet PublicSecurityGroup
     Value: 
@@ -154,3 +169,4 @@ Outputs:
       - GroupId
     Export: 
       Name: !Sub ${AWS::StackName}-PublicSecurityGroupID
+  

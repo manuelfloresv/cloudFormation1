@@ -21,4 +21,11 @@ Referencias:
 
 + https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/Welcome.html
 + https://docs.aws.amazon.com/cli/latest/reference/cloudformation/index.html
-+ https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/
++ https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/ 
++ https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html
++ https://medium.com/@anupam.ncsu/reference-resource-from-one-cloud-formation-stack-in-another-during-formation-f5c80679f0fd
++ https://aws.amazon.com/es/premiumsupport/knowledge-center/cloudformation-reference-resource/
++ https://github.com/gravitational/teleport-quickstart-aws/blob/master/oss.yaml
++ https://github.com/aws-samples/ecs-refarch-cloudformation/blob/master/infrastructure/load-balancers.yaml
+
+
